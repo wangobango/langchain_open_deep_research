@@ -82,13 +82,16 @@ async def tavily_search(
     max_char_to_include = configurable.max_content_length
     
     # Initialize summarization model with retry logic
-    model_api_key = get_api_key_for_model(configurable.summarization_model, config)
-    summarization_model = init_chat_model(
-        model=configurable.summarization_model,
-        max_tokens=configurable.summarization_model_max_tokens,
-        api_key=model_api_key,
-        tags=["langsmith:nostream"]
-    ).with_structured_output(Summary).with_retry(
+    model_api_key = get_api_key_for_model(configurable.summarization_model, config, configurable)
+    init_kwargs = {
+        "model": configurable.summarization_model,
+        "max_tokens": configurable.summarization_model_max_tokens,
+        "api_key": model_api_key,
+        "tags": ["langsmith:nostream"],
+    }
+    if base_url := get_llm_api_base(configurable):
+        init_kwargs["base_url"] = base_url
+    summarization_model = init_chat_model(**init_kwargs).with_structured_output(Summary).with_retry(
         stop_after_attempt=configurable.max_structured_output_retries
     )
     
@@ -889,8 +892,25 @@ def get_config_value(value):
     else:
         return value.value
 
-def get_api_key_for_model(model_name: str, config: RunnableConfig):
+def get_llm_api_base(configuration: Configuration | None = None, config: RunnableConfig | None = None) -> Optional[str]:
+    """Get the OpenAI-compatible base URL, if configured."""
+    if configuration:
+        return configuration.llm_api_base
+    if config:
+        return Configuration.from_runnable_config(config).llm_api_base
+    return None
+
+
+def get_api_key_for_model(
+    model_name: str,
+    config: RunnableConfig,
+    configuration: Configuration | None = None,
+):
     """Get API key for a specific model from environment or config."""
+    if configuration is None:
+        configuration = Configuration.from_runnable_config(config)
+    if configuration.llm_api_key:
+        return configuration.llm_api_key
     should_get_from_config = os.getenv("GET_API_KEYS_FROM_CONFIG", "false")
     model_name = model_name.lower()
     if should_get_from_config.lower() == "true":

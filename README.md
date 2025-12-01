@@ -72,6 +72,19 @@ Open Deep Research supports a wide range of LLM providers via the [init_chat_mod
 
 > Note: For OpenRouter: Follow [this guide](https://github.com/langchain-ai/open_deep_research/issues/75#issuecomment-2811472408) and for local models via Ollama  see [setup instructions](https://github.com/langchain-ai/open_deep_research/issues/65#issuecomment-2743586318).
 
+You can route every stage of the agent through **any OpenAI-compatible endpoint** by setting a base URL, API key, and per-stage models inside `.env`:
+
+```dotenv
+LLM_API_BASE=https://your-llm-endpoint/v1
+LLM_API_KEY=sk-your-key
+RESEARCH_MODEL=openai:your-model
+COMPRESSION_MODEL=openai:your-model
+SUMMARIZATION_MODEL=openai:your-model
+FINAL_REPORT_MODEL=openai:your-model
+```
+
+Leave `LLM_API_BASE` empty to fall back to the default provider behavior. When targeting OpenAI-compatible runtimes (local vLLM, serverless gateways, OpenRouter, etc.), keep the `openai:` prefix so LangChain routes requests through the OpenAI-style client while still honoring your custom endpoint.
+
 #### Search API :mag:
 
 Open Deep Research supports a wide range of search tools. By default it uses the [Tavily](https://www.tavily.com/) search API. Has full MCP compatibility and work native web search for Anthropic and OpenAI. See the `search_api` and `mcp_config` fields in the [configuration.py](https://github.com/langchain-ai/open_deep_research/blob/main/src/open_deep_research/configuration.py) file for more details. This can be accessed via the LangGraph Studio UI. 

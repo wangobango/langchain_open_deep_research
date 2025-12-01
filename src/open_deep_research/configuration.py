@@ -51,6 +51,24 @@ class Configuration(BaseModel):
             }
         }
     )
+    llm_api_base: Optional[str] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "text",
+                "description": "Base URL for any OpenAI-compatible API (e.g. https://api.your-llm.com/v1). Leave blank to use provider defaults."
+            }
+        }
+    )
+    llm_api_key: Optional[str] = Field(
+        default=None,
+        metadata={
+            "x_oap_ui_config": {
+                "type": "secret",
+                "description": "API key used for the configured OpenAI-compatible endpoint. Overrides provider-specific defaults when set."
+            }
+        }
+    )
     allow_clarification: bool = Field(
         default=True,
         metadata={
